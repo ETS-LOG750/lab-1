@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-project(Laboratoire 1)
+project(Laboratoire1)
 
 #######################################
 # LOOK for the packages that we need! #

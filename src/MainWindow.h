@@ -56,8 +56,6 @@ private:
 	int m_mainShader_pos_loc = -1; 
 
 	// VAO and buffers (geometry)
-	enum VAO_IDs { Triangles, NumVAOs };
-	enum Buffer_IDs { Positions, NumVBOs };
-	GLuint m_VAOs[NumVAOs];
-	GLuint m_VBOs[NumVBOs];
+	GLuint m_VAO;
+	GLuint m_VBO_position;
 };
