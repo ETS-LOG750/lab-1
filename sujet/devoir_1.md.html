@@ -1,0 +1,177 @@
+<meta charset="utf-8" emacsmode="-*- markdown -*-">
+
+**LOG 750 - Laboratoire 1 - Version 1.01**
+
+# Objectifs du laboratoire
+- Se familiariser avec la programmation d'application graphique interactive avec OpenGL (VBO, VAO, Nuanceurs)
+- Se familiariser avec les autres bibliothèques fournies (ImGUI)
+- Utiliser les concepts de couleurs et d'éclairage vu en cours. 
+
+Le but est de partir d'un code de départ simple et de rajouter des fonctionnalités. Vous devrez développer une application permettant de contrôler le calcul d'éclairage d'un objet et changer sa géométrie. Normalement vous devriez pouvoir compiler sans problème le code de base, si vous avez suivi les instructions disponibles sur Moodle. Lors du lancement, vous devriez voir la fenêtre suivante s'ouvrir:
+
+![Fenêtre de base](imgs/lab-1-start.png width="400px")
+
+Après avoir mis en œuvre toutes les tâches listées ci-dessous, vous devriez voir le rendu suivant:
+
+![Exemple d'un résultat final du laboratoire](imgs/lab-1-end.png width="400px")
+
+!!! WARN: Important
+    Il est fortement recommandé de se référer aux exemples et diapositives donnés en cours. Vous avez accès à ces ressources sur Moodle. 
+
+# Récupérer le code de base 
+
+Les laboratoires s'effectueront sur Github classroom. Pour pouvoir effectuer les laboratoires, vous devez créer un compte GitHub. Lorsque vous allez cliquer sur le lien d'invitation, il y a deux cas de figure:
+1. votre groupe n'est pas visible sur la page de création du devoir (car vous êtes le premier de votre équipe à rejoindre le GitHub classroom). Dans ce cas, merci de créer un groupe en utilisant la nomenclature suivante: `groupe-N` ou `N` doit être remplacé par votre numéro de groupe sur Moodle.
+2. votre groupe est visible sur la page de création du devoir. Sélectionnez-le. 
+
+__Utilisez Discord et informer vos coéquipiers de la création du groupe sur GitHub classroom. Le lien pour rejoindre la Github classroom est disponible sur Moodle__.
+
+Vous pouvez suivre la documentation officielle de Github pour la configuration: https://docs.github.com/en/get-started/quickstart/set-up-git 
+
+**N'hésitez pas de contacter le chargé de laboratoire ou professeur (p. ex. sur le discord), si vous avez la moindre question.**
+
+# Devoir (100 pt)
+
+Pour ce devoir, vous allez avoir un code de départ similaire aux exemples donnés en classe. Les fichiers présents sont:
+- `Main.cpp`: point d'entrée pour l'exécution. Ne pas changer. 
+- `ShaderProgram.{cpp/h}`: classe permettant une manipulation plus facile des nuanceurs. Normalement vous ne devriez pas à avoir changé ce fichier. 
+- `MainWindow.{cpp/h}`: application principale OpenGL.
+- `basic.{vert/frag}`: nuanceurs principaux. 
+
+Beaucoup de commentaires sont disponibles dans les différents fichiers. Merci de les lire attentivement. 
+
+Il est essentiel qu'au lancement, votre application permette de démontrer que vous avez bien mis en œuvre les fonctionnalités de base. 
+
+!!! ERROR: Attention
+    Il faut que votre application soit robuste aux interactions utilisateurs. C'est votre responsabilité de vérifier si les paramètres utilisateur spécifiés dans ImGUI sont valides ou non. Si lors de la correction, votre application n'est pas robuste, vous allez perdre des points. 
+
+## Fonctionnalités principales (85 pts)
+
+Votre application doit permettre de faire l'affichage d'une sphère de rayon 0.9 centrée à (0, 0, 0) et éclairée par une source de lumière ponctuelle positionnée à (1, 1, 1). Cette position de la source de lumière correspond en haut à droite de l'écran, proche de la caméra. Tout comme dans l'exemple de triangles (Cours 1), votre application doit permettre l'affichage sans l'utilisation de caméra et sans projection, ce qui a les conséquences suivantes:
+- aucune transformation (e.g., multiplication par une matrice) supplémentaire n’est attendue dans le nuanceur de sommets. 
+- les sommets visibles sont dans le volume $(-1, 1)^3$ (aussi appelé normalized devide coordinates ou NDC)
+
+Cela donne la scène et système de coordonnées suivants:
+
+![Schéma correspondant à la configuration de la scène par rapport à la sphère 3D](imgs/lab-1-setup-all.png)
+
+![Coordonnée 2D dans l'espace écran](imgs/lab-1-window-annoted.png width="300px")
+
+Si vous ouvrez le nuanceur de sommets, vous allez voir une transformation entre repères main gauche à main droite (https://fr.wikipedia.org/wiki/R%C3%A8gle_de_la_main_droite ). Nous verrons plus tard dans le cours les raisons de cette transformation. La conséquence de cette transformation est que les sommets avec des valeurs de `z` proche de $1$ sont proches de la caméra. 
+
+Afin de voir les bonnes faces de la sphère (faces avant vs faces arrière), prenez soin de garder l'appel à glEnable(GL_DEPTH_TEST) dans la méthode InitializeGL(). Dans votre code de base, il y a déjà cet appel. Encore une fois, nous verrons plus tard dans le cours les raisons de cette fonctionnalité (https://fr.wikipedia.org/wiki/Z-buffer ).
+
+### Dessin d'une sphère
+
+Vous allez devoir générer les informations liées au sommet de votre sphère. Une sphère ici va correspondre à une collection de polygones triangulaire. Votre application doit  permettre de changer le nombre de polygones composant la sphère. Le nombre de polygones sera contrôlé par les paramètres de subdivision horizontale et verticale. Cela signifie que le nombre de polygones affiché peut être changé dynamiquement. Il est important qu'en tout temps, la sphère soit visible, malgré des erreurs de l'utilisateur. 
+
+Pour générer la sphère, vous allez utiliser les coordonnées sphériques (rayon-longitude-latitude, https://fr.wikipedia.org/wiki/Coordonn%C3%A9es_sph%C3%A9riques ). Notez ici que l'on s'attend à avoir les pôles en bas et haut de la fenêtre d'affichage. Le pseudo code (en python) pour calculer la position des sommets de la sphère:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python
+def spherical_to_pos(rayon, theta, phi):
+    # Utilisation des équations rayon-longitude-latitude
+    # https://fr.wikipedia.org/wiki/Coordonn%C3%A9es_sph%C3%A9riques
+    # pour retourner un point dans l'espace 3D
+    # A vous de calculer les coordonnées (x,y,z) du point (avec le rayon)
+    return vec3(...) 
+
+
+# Liste de position
+pos = []
+
+# Création des lignes
+delta_phi = pi / (nb_lignes + 1);
+delta_theta = 2 * pi / nb_col);
+for row in range(1, nb_lignes):
+    phi_1 = row * delta_phi
+    phi_2 = (row + 1) * delta_phi
+    for col in range(0, nb_col):
+        theta_1 = col * delta_theta
+        theta_2 = (col+1) * delta_theta
+        # Utilisation des coordonnées sphériques pour créer 2 triangles 
+        # correspondant à la face entre les angles phi et theta
+        # ajout les sommets dans la liste "pos"
+        pos += [ # Ex: Triangle 1
+            spherical_to_pos(theta_1, phi_1),
+            spherical_to_pos(theta_1, phi_2),
+            spherical_to_pos(theta_2, phi_1)
+        ]
+        # Même logique pour le deuxième triangle (pour former la surface)
+
+# Création du capuchon en haut
+p = rayon * vec3(0, 1, 0)
+phi = 2 * pi / nb_lignes
+for col in range(0, nb_col):
+    theta_1 = col * delta_theta
+    theta_2 = (col+1) * delta_theta
+    # Utilisation des coordonnées sphériques pour créer le triangle
+    # ajout des sommets dans la liste "pos"
+    pos += [
+        p, 
+        spherical_to_pos(rayon, theta_1, phi), 
+        spherical_to_pos(rayon, theta_2, phi)
+    ]
+
+# Même manière pour créer le capuchon en bas
+p = rayon * (0, -1, 0)
+phi = 2 * pi * (nb_lignes - 1) / nb_lignes
+for t in range(0, nb_col):
+    # ... 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+Regardez l'exemple triangle donné en cours, pour voir comment utilisez un vecteur dynamique (`std::vector`). 
+
+!!! WARN: Attention
+    Vous pouvez utilisez les fonctions trigonométriques en C++ avec `#include <cmath>`. Attention, ces méthodes attendent souvent des valeurs en radian. Pour plus d'information, regardez la documentation: 
+    
+    https://en.cppreference.com/w/cpp/numeric/math.
+
+    Pour $\pi$, vous pouvez utiliser la valeur suivante: ` 3.14159265358979323846f`
+
+!!! Tips
+    Vous pouvez utiliser `glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)` pendant l'initialisation de l'application pour visualiser la sphère en fil de fer. Cela peut vous être utile pour visualiser la géométrie de la sphère. 
+
+    Une autre astuce est d'afficher dans le terminal (avec `std::cout`) les positions des sommets générés (ou utilisez un debugger!).
+
+### Éclairage
+
+Pour le calcul de l'éclairage, il est attendu d'avoir une source ponctuelle positionnée en (1, 1, 1). Pour le modèle de matériaux, il est attendu que vous mettez en œuvre le modèle de Phong avec ambiant et composante diffuse. L'utilisateur doit au minimum être en mesure de contrôler les propriétés de matériel correspondant à l'ambiant, au diffus et à la composante spéculaire (Cours 3). Pour chaque propriété, on peut ajuster la valeur du coefficient pour chacun des canaux rouge, vert et bleu (Cours 2). Vous devez aussi permettre de contrôler l'exposant spéculaire du matériel.
+
+!!! Information
+    Nous voulons avoir la meilleure qualité de calcul d'éclairage possible (Phong shading). Cela requiert des changements dans les nuanceurs et/ou dans les informations liés aux sommets. 
+
+### Notation
+- Construction de la sphère dynamique (20 pts)
+- Calcul de la contribution lumineuse et ambiante (20 pts)
+- Control et calcul des composantes du matériau (35 pts)
+  - Diffus (15 pts)
+  - Spéculaire (20 pts)
+- Respect des consignes (position de la source de lumière ...) (10 pts)
+
+## Fonctionnalités additionnelles (15 pts)
+
+L'application doit aussi avoir des particularités additionnelles. Pour avoir tous les points, vos particularités additionnelles doivent être conséquentes (suffisamment complexes et difficiles à réaliser) et se comparer favorablement à celles des autres équipes. Vous pouvez voir ceci comme une compétition entre les équipes. **Les particularités additionnelles ne peuvent pas correspondre à des exigences des laboratoires à venir.**
+
+Voici quelques exemples de fonctionnalités additionnelles:
+- Supporter plusieurs modèles pour de matériaux (Phong vs. Blinn)
+- Contrôler la position de la lumière et sa couleur
+- Permettre d'avoir plusieurs sources de lumière supporter plusieurs types de lumière (ponctuelle, directionnelle, spot)
+- Supporter plusieurs types d'objets (significativement plus complexes d'un simple cube)
+
+## Soumettre votre devoir
+
+Créer une archive contenant:
+- tous les fichiers des dossiers `src`
+- tous autres fichiers nécessaires à l'utilisation de votre application (ex. image ajoutée)
+- le rapport respectant le gabarit (disponible sur Moodle) 
+
+Soumettez cette archive sur Moodle avant la deadline. 
+
+<!-- Markdeep: -->
+<style class="fallback">
+    body {
+        visibility: hidden
+    }
+</style>
+<script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script> 
