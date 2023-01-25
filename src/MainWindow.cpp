@@ -113,29 +113,30 @@ int MainWindow::InitializeGL()
 	// Load geometry
 	/////////////////////////////
 	// Generate VAO and VBO
-	glGenVertexArrays(NumVAOs, m_VAOs);
-	glGenBuffers(NumVBOs, m_VBOs);
+	glGenVertexArrays(1, &m_VAO);
+	glGenBuffers(1, &m_VBO_position);
 
 	// Load data on the VBO
 	// TODO: Change to make a sphere, look at 01_Triangles examples
-	//	Also make a fonction to create proper geometry based on GUI values
+	//	     Also make a fonction to create proper geometry based on GUI values
+	//       Finally, make sure to correctly adapt the code below.  
 	const GLuint NumVertices = 3;
-	GLfloat vertices[NumVertices][2] = {
-		{ -0.90f, -0.90f }, // Triangle 1
-		{ 0.85f, -0.90f },
-		{ -0.90f, 0.85f }
+	GLfloat vertices[NumVertices][3] = {
+		{ -0.90f, -0.90f, 0.0f }, // Triangle 1
+		{ 0.85f, -0.90f,  0.0f },
+		{ -0.90f, 0.85f,  0.0f }
 	};
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[Positions]); // Activate
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_position); // Activate
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // Copy
 	glBindBuffer(GL_ARRAY_BUFFER, 0); // Desactivate (Optional)
 	
 	// Configuration VAO
-	glBindVertexArray(m_VAOs[Triangles]);
+	glBindVertexArray(m_VAO);
 	// --- Positions
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[Positions]); // Activate'
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_position); // Activate'
 	// Doc: https://registry.khronos.org/OpenGL-Refpages/gl4/html/glVertexAttribPointer.xhtml
 	glVertexAttribPointer(GLuint(m_mainShader_pos_loc), 
-		2, // 2D information
+		3, // 2D information
 		GL_FLOAT, // type: float
 		GL_FALSE, // do not need to normalize
 		0, // No stride (packed data)
@@ -198,7 +199,7 @@ void MainWindow::RenderScene()
 
 	m_mainShader->bind(); // Activate shader
 	// Draw triangle
-	glBindVertexArray(m_VAOs[Triangles]); // Activate VAO
+	glBindVertexArray(m_VAO); // Activate VAO
 	glDrawArrays(GL_TRIANGLES, 0, 3);     // Draw 3 vertices (= one triangle)
 	// TODO: You will need to change the number of verticies based on sphere geometry
 }
